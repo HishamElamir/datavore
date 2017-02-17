@@ -21,7 +21,7 @@ visualizations using the [D3](http://github.com/mbostock/d3) framework.
 A Datavore table is simply a collection of data columns, each realized as a
 JavaScript array. To create a table instance, you can either initialize the
 full table through the constructor or add columns one-by-one. For instance:
-
+```js
     var colA = ["a","a","b","b","c"];
     var colB = [0,1,2,3,4];
     
@@ -36,7 +36,7 @@ full table through the constructor or add columns one-by-one. For instance:
     var tab2 = dv.table();
     tab2.addColumn("A", colA, dv.type.nominal);
     tab2.addColumn("B", colB, dv.type.numeric);
-
+```
 In addition to the column name and array of values, each column must have a
 specified data type, one of `dv.type.nominal`, `dv.type.ordinal`, 
 `dv.type.numeric`, or `dv.type.unknown`. Numeric means the column contains numbers
@@ -55,7 +55,7 @@ and other data types to integer codes enables faster query performance.
 You can access values within a Datavore table directly via array indices or
 through the table `get` method. For nominal or ordinal types, direct access will 
 return coded integers. The `get` method always returns the original value.
-
+```js
     // both array indices and the "get" method use (column, row) ordering
     alert(tab1[0][1]);    // 1st column, 2nd row, coded   --> prints "0"
     alert(tab1.get(0,1)); // 1st column, 2nd row, uncoded --> prints "a"
@@ -64,13 +64,13 @@ return coded integers. The `get` method always returns the original value.
     // included for demo purposes only; use the "get" method instead!
     // 1st column, 2nd row, uncoded --> prints "a"
     alert(tab1[0].lut[tab1[0][1]]);
-
+```
 You can either access columns by their numerical index (as above) or by name:
-
+```js
     // accessing table values by column name
     alert(tab1["A"][1]);    // 1st column, 2nd row, coded   --> prints "0"
     alert(tab1.get("A",1)); // 1st column, 2nd row, uncoded --> prints "a"
-
+```
 **WARNING**: *Datavore column names should NOT be numbers.* If you use column 
 names that JavaScript can interpret as integer values ("00") you will likely
 experience unexpected (and undesirable) behavior.
@@ -82,12 +82,12 @@ group-by aggregation. Filtering queries simply filter table contents
 according to a predicate function; these are similar to simple SQL queries
 with a WHERE clause. The filtering function takes a table instance and row
 number as arguments and returns a new Datavore table instance.
-
+```js
     // creates a new table with 3 rows: [["b","b","c"], [2,3,4]]
     var filtered_table = tab1.where(function(table, row) {
         return table.get("B", row) > 1;
     });
-
+```
 *NOTE*: To ensure that tables created by various filtering queries are
 compatible with each other, nominal and ordinal columns within the result
 tables will always have the same lookup table as the original table, even if
@@ -101,7 +101,7 @@ The primary use case for Datavore is running aggregation queries. These queries
 allow you to calculate counts, sums, averages, standard deviations, and minimum
 or maximum values for a column, optionally grouped according to nominal or
 ordinal dimensions. These queries are similar to SQL queries with group-by clauses.
-
+```js
     // count all rows in the table -> returns [[5]]
     var counts = tab1.query({vals:[dv.count()]});
 
@@ -119,7 +119,7 @@ ordinal dimensions. These queries are similar to SQL queries with group-by claus
     var filter = tab1.query({dims:[0], vals:[dv.count()], where:
         function(table, row) { return table.get("A",row) != "a"; }
     });
-
+```
 The return value of the `query` method is an array of arrays. Note that the
 return value is *not* a Datavore table object. The input to the query method
 should be a JavaScript object with up to four parameters: `vals` (required),
@@ -152,13 +152,13 @@ the resulting aggregate table will have 3*4=12 rows, including zero values.
 Datavore also supports a *sparse* representation that does not include rows
 for zero values. To use a sparse representation, use the `sparse_query`
 function, like so:
-
+```js
     // non-zero counts of all table rows where first column != "a"
     // returns -> [["b","c"], [2,1]]
     var sparse = tab1.sparse_query({dims:[0], vals:[dv.count()], where:
         function(table, row) { return table.get("A",row) != "a"; }
     });
-
+```
 So why the different query types? Dense queries can be calculated faster
 &ndash; by "materializing" the full dimensionality of the aggregated data one
 can use an array to store all the intermediate results. The sparse
